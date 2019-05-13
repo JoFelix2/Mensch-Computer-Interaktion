@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	    <meta charset="utf-8">
+		<title>B.3</title>
+	</head>
+	<body>
+		<canvas id="canvas" width="1" height="1"></canvas>
+		<div id="results"></div>
+		<div id="explain">
+			Drücke [T], sobald eine Hauptstadt angezeigt wird, und [F], sobald eine normale Stadt angezeigt wird.
+			<br>Drücke jederzeit [A], um das Experiment zu beenden.
+			<br>Drücke [SPACE], um anzufangen!
+		</div>
+		<script>
+
+
+
+// this section is for the actual experiment coding
+var canvas = document.getElementById("canvas"), draw;
+var experiment = false, fTimes, tTimes, mistakes, currentTime, stimulusType;
+var currentTimeout;
+function startExperiment() {
+	fTimes = [];
+	tTimes = [];
+	mistakes = 0;
+	document.getElementById("results").innerHTML = "";
+	document.getElementById("explain").innerHTML = "";
+	if (document.fullscreenEnabled) canvas.requestFullscreen();
+	else {
+		canvas.width = 1280;
+		canvas.height = 720;
+		draw = canvas.getContext("2d");
+	}
+	experiment = true;
+	stimulusType = -1;
+	currentTimeout = window.setTimeout(showStimulus, Math.random() * 4000 + 2000);
+}
+function showStimulus() {
+	draw.fillStyle = "#000000";
+	draw.fillRect(0, 0, canvas.width, canvas.height);
+	if (Math.random() < 0.5) {
+		stimulusType = 0;
+		draw.fillStyle = "#0000ff";
+		draw.font = "48px sans-serif";
+		draw.textAlign = "center";
+		draw.textBaseline = "middle";
+		draw.fillText(cities[parseInt(Math.random() * cities.length)], (Math.random() * 0.5 + 0.25) * canvas.width, (Math.random() * 0.5 + 0.25) * canvas.height);
+	} else {
+		stimulusType = 1;
+		draw.fillStyle = "#0000ff";
+		draw.font = "48px sans-serif";
+		draw.textAlign = "center";
+		draw.textBaseline = "middle";
+		draw.fillText(capitals[parseInt(Math.random() * capitals.length)], (Math.random() * 0.5 + 0.25) * canvas.width, (Math.random() * 0.5 + 0.25) * canvas.height);
+	}
+	currentTime = new Date().getTime();
+	currentTimeout = window.setTimeout(stimulusNoResponse, 4000);
+}
+function stimulusNoResponse() {
+	window.clearTimeout(currentTimeout);
+	draw.fillStyle = "#000000";
+	draw.fillRect(0, 0, canvas.width, canvas.height);
+	draw.fillStyle = "#ff0000";
+	draw.font = "16px sans-serif";
+	draw.textAlign = "center";
+	draw.textBaseline = "middle";
+	draw.fillText("Fehler", canvas.width * 0.5, canvas.height * 0.75);
+	mistakes++;
+	stimulusType = -1;
+	currentTimeout = window.setTimeout(showStimulus, Math.random() * 4000 + 2000);
+}
+function stimulusResponseF() {
+	let time = new Date().getTime() - currentTime;
+	window.clearTimeout(currentTimeout);
+	draw.fillStyle = "#000000";
+	draw.fillRect(0, 0, canvas.width, canvas.height);
+	if (stimulusType === 0) {
+		draw.fillStyle = "#00ff00";
+		draw.font = "16px sans-serif";
+		draw.textAlign = "center";
+		draw.textBaseline = "middle";
+		draw.fillText(time + " ms", canvas.width * 0.5, canvas.height * 0.75);
+		fTimes.push(time);
+	} else {
+		draw.fillStyle = "#ff0000";
+		draw.font = "16px sans-serif";
+		draw.textAlign = "center";
+		draw.textBaseline = "middle";
+		draw.fillText("Fehler", canvas.width * 0.5, canvas.height * 0.75);
+		mistakes++;
+	}
+	stimulusType = -1;
+	currentTimeout = window.setTimeout(showStimulus, Math.random() * 4000 + 2000);
+}
+function stimulusResponseT() {
+	let time = new Date().getTime() - currentTime;
+	window.clearTimeout(currentTimeout);
+	draw.fillStyle = "#000000";
+	draw.fillRect(0, 0, canvas.width, canvas.height);
+	if (stimulusType === 1) {
+		draw.fillStyle = "#00ff00";
+		draw.font = "16px sans-serif";
+		draw.textAlign = "center";
+		draw.textBaseline = "middle";
+		draw.fillText(time + " ms", canvas.width * 0.5, canvas.height * 0.75);
+		tTimes.push(time);
+	} else {
+		draw.fillStyle = "#ff0000";
+		draw.font = "16px sans-serif";
+		draw.textAlign = "center";
+		draw.textBaseline = "middle";
+		draw.fillText("Fehler", canvas.width * 0.5, canvas.height * 0.75);
+		mistakes++;
+	}
+	stimulusType = -1;
+	currentTimeout = window.setTimeout(showStimulus, Math.random() * 4000 + 2000);
+}
+function stopExperiment() {
+	window.clearTimeout(currentTimeout);
+	experiment = false;
+	if (document.fullscreenElement) document.exitFullscreen();
+	canvas.width = 1;
+	canvas.height = 1;
+	let fMean = 0, tMean = 0;
+	for (let i = 0; i < fTimes.length; i++) fMean += fTimes[i];
+	for (let i = 0; i < tTimes.length; i++) tMean += tTimes[i];
+	fMean /= fTimes.length;
+	tMean /= tTimes.length;
+	let fSD = 0, tSD = 0;
+	for (let i = 0; i < fTimes.length; i++) fSD += (fTimes[i] - fMean) * (fTimes[i] - fMean);
+	for (let i = 0; i < tTimes.length; i++) tSD += (tTimes[i] - tMean) * (tTimes[i] - tMean);
+	fSD = Math.sqrt(fSD / fTimes.length);
+	tSD = Math.sqrt(tSD / tTimes.length);
+	document.getElementById("results").innerHTML = "<p>Anzahl Runden: " + (fTimes.length + tTimes.length + mistakes)
+		+ "<br>Fehlerrate: " + ((mistakes / (fTimes.length + tTimes.length + mistakes)) * 100) + " %</p>"
+		+ "<p>Anzahl normaler Städte: " + fTimes.length
+		+ "<br>Durchschnittliche Reaktionszeit: " + fMean + " ms"
+		+ "<br>Standardabweichung: " + fSD + " ms</p>"
+		+ "<p>Anzahl Häuptsdädte: " + tTimes.length
+		+ "<br>Durchschnittliche Reaktionszeit: " + tMean + " ms"
+		+ "<br>Standardabweichung: " + tSD + " ms</p>";
+	document.getElementById("explain").innerHTML = "Drücke [SPACE], um das Experiment neu zu starten!";
+}
+var capitals = [
+	"Berlin",
+	"Paris",
+	"Kairo",
+	"Bischkek",
+	"Vientienne",
+	"Maskat",
+	"Pretoria",
+	"Dakar",
+	"Abuja",
+	"Niamy",
+	"Buenos Aires"
+], cities = [
+	"Stuttgart",
+	"Rio de Janeiro",
+	"Lyon",
+	"Douala",
+	"Barcelona",
+	"Dortmund",
+	"Turin",
+	"München",
+	"Osaka",
+	"Toronto",
+	"Tanger"
+];
+
+// this section is for handling key presses
+var spacePrev = false, spaceCurr = false, aPrev = false, aCurr = false, fPref = false, fCurr = false, tPrev = false, tCurr = false;
+document.addEventListener("keydown", function(event) {
+	switch (event.keyCode) {
+		case 32:
+			spacePrev = spaceCurr;
+			spaceCurr = true;
+			if (spaceCurr && !spacePrev) {
+				if (!experiment) startExperiment();
+			}
+			break;
+		case 65:
+			aPrev = aCurr;
+			aCurr = true;
+			if (aCurr && !aPrev) {
+				if (experiment) stopExperiment();
+			}
+			break;
+		case 70:
+			fPrev = fCurr;
+			fCurr = true;
+			if (fCurr && !fPrev) {
+				if (experiment) stimulusResponseF();
+			}
+			break;
+		case 84:
+			tPrev = tCurr;
+			tCurr = true;
+			if (tCurr && !tPrev) {
+				if (experiment) stimulusResponseT();
+			}
+			break;
+	}
+});
+document.addEventListener("keyup", function(event) {
+	switch (event.keyCode) {
+		case 32:
+			spacePrev = spaceCurr;
+			spaceCurr = false;
+			break;
+		case 65:
+			aPrev = aCurr;
+			aCurr = false;
+			break;
+		case 70:
+			fPrev = fCurr;
+			fCurr = false;
+			break;
+		case 84:
+			tPrev = tCurr;
+			tCurr = false;
+			break;
+	}
+});
+
+// this section is for handling fullscreen events
+document.addEventListener("fullscreenchange", function(event) {
+	if (document.fullscreenElement) {
+		canvas.width = canvas.offsetWidth;
+		canvas.height = canvas.offsetHeight;
+		draw = canvas.getContext("2d");
+	} else stopExperiment();
+});
+
+
+
+		</script>
+	</body>
+</html>

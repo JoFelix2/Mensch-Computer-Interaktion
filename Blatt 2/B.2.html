@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	    <meta charset="utf-8">
+		<title>B.2</title>
+	</head>
+	<body>
+		<canvas id="canvas" width="1" height="1"></canvas>
+		<div id="results"></div>
+		<div id="explain">
+			Drücke [SPACE], sobald ein Kreis angezeigt wird.
+			<br>Drücke jederzeit [A], um das Experiment zu beenden.
+			<br>Drücke [SPACE], um anzufangen!
+		</div>
+		<script>
+
+
+
+// this section is for the actual experiment coding
+var canvas = document.getElementById("canvas"), draw;
+var experiment = false, times = [], mistakes = 0, nonMistakes = 0, currentTime, stimulusType = -1;
+var currentTimeout;
+function startExperiment() {
+	times = [];
+	mistakes = 0;
+	nonMistakes = 0;
+	document.getElementById("results").innerHTML = "";
+	document.getElementById("explain").innerHTML = "";
+	if (document.fullscreenEnabled) canvas.requestFullscreen();
+	else {
+		canvas.width = 1280;
+		canvas.height = 720;
+		draw = canvas.getContext("2d");
+	}
+	experiment = true;
+	stimulusType = -1;
+	currentTimeout = window.setTimeout(showStimulus, Math.random() * 4000 + 2000);
+}
+function showStimulus() {
+	draw.fillStyle = "#000000";
+	draw.fillRect(0, 0, canvas.width, canvas.height);
+	if (Math.random() < 0.5) {
+		stimulusType = 0;
+		let n = Math.random() * 200 + 150;
+		draw.fillStyle = "#0000ff";
+		draw.fillRect(Math.random() * (canvas.width - n), Math.random() * (canvas.height - n), n, n);
+	} else {
+		stimulusType = 1;
+		let n = Math.random() * 200 + 150;
+		draw.fillStyle = "#0000ff";
+		draw.beginPath();
+		draw.arc(Math.random() * (canvas.width - n) + n / 2, Math.random() * (canvas.height - n) + n / 2, n / 2, 0, 2 * Math.PI);
+		draw.fill();
+	}
+	currentTime = new Date().getTime();
+	currentTimeout = window.setTimeout(stimulusNoResponse, 4000);
+}
+function stimulusNoResponse() {
+	let time = new Date().getTime() - currentTime;
+	window.clearTimeout(currentTimeout);
+	draw.fillStyle = "#000000";
+	draw.fillRect(0, 0, canvas.width, canvas.height);
+	if (stimulusType === 1) {
+		draw.fillStyle = "#ff0000";
+		draw.font = "16px sans-serif";
+		draw.textAlign = "center";
+		draw.textBaseline = "middle";
+		draw.fillText("Fehler", canvas.width * 0.5, canvas.height * 0.75);
+		mistakes++;
+	} else nonMistakes++;
+	stimulusType = -1;
+	currentTimeout = window.setTimeout(showStimulus, Math.random() * 4000 + 2000);
+}
+function stimulusResponse() {
+	let time = new Date().getTime() - currentTime;
+	window.clearTimeout(currentTimeout);
+	draw.fillStyle = "#000000";
+	draw.fillRect(0, 0, canvas.width, canvas.height);
+	switch (stimulusType) {
+		case -1:
+		case 0:
+			draw.fillStyle = "#ff0000";
+			draw.font = "16px sans-serif";
+			draw.textAlign = "center";
+			draw.textBaseline = "middle";
+			draw.fillText("Fehler", canvas.width * 0.5, canvas.height * 0.75);
+			mistakes++;
+			break;
+		case 1:
+			draw.fillStyle = "#00ff00";
+			draw.font = "16px sans-serif";
+			draw.textAlign = "center";
+			draw.textBaseline = "middle";
+			draw.fillText(time + " ms", canvas.width * 0.5, canvas.height * 0.75);
+			times.push(time);
+			break;
+	}
+	stimulusType = -1;
+	currentTimeout = window.setTimeout(showStimulus, Math.random() * 4000 + 2000);
+}
+function stopExperiment() {
+	window.clearTimeout(currentTimeout);
+	experiment = false;
+	if (document.fullscreenElement) document.exitFullscreen();
+	canvas.width = 1;
+	canvas.height = 1;
+	let mean = 0;
+	for (let i = 0; i < times.length; i++) mean += times[i];
+	mean /= times.length;
+	let SD = 0;
+	for (let i = 0; i < times.length; i++) SD += (times[i] - mean) * (times[i] - mean);
+	SD = Math.sqrt(SD / times.length);
+	document.getElementById("results").innerHTML = "<p>Anzahl Runden: " + (times.length + mistakes + nonMistakes)
+		+ "<br>Fehlerrate: " + ((mistakes / (times.length + mistakes + nonMistakes)) * 100) + " %</p>"
+		+ "<p>Anzahl Go-Stimuli: " + times.length
+		+ "<br>Durchschnittliche Reaktionszeit: " + mean + " ms"
+		+ "<br>Standardabweichung: " + SD + " ms</p>"
+		+ "<p>Anzahl No-Go-Stimuli: " + nonMistakes + "</p>";
+	document.getElementById("explain").innerHTML = "Drücke [SPACE], um das Experiment neu zu starten!";
+}
+
+// this section is for handling key presses
+var spacePrev = false, spaceCurr = false, aPrev = false, aCurr = false;
+document.addEventListener("keydown", function(event) {
+	switch (event.keyCode) {
+		case 32:
+			spacePrev = spaceCurr;
+			spaceCurr = true;
+			if (spaceCurr && !spacePrev) {
+				if (!experiment) startExperiment();
+				else stimulusResponse();
+			}
+			break;
+		case 65:
+			aPrev = aCurr;
+			aCurr = true;
+			if (aCurr && !aPrev) {
+				if (experiment) stopExperiment();
+			}
+			break;
+	}
+});
+document.addEventListener("keyup", function(event) {
+	switch (event.keyCode) {
+		case 32:
+			spacePrev = spaceCurr;
+			spaceCurr = false;
+			break;
+		case 65:
+			aPrev = aCurr;
+			aCurr = false;
+			break;
+	}
+});
+
+// this section is for handling fullscreen events
+document.addEventListener("fullscreenchange", function(event) {
+	if (document.fullscreenElement) {
+		canvas.width = canvas.offsetWidth;
+		canvas.height = canvas.offsetHeight;
+		draw = canvas.getContext("2d");
+	} else stopExperiment();
+});
+
+
+
+		</script>
+	</body>
+</html>
