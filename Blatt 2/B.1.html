@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	    <meta charset="utf-8">
+		<title>B.1</title>
+	</head>
+	<body>
+		<canvas id="canvas" width="1" height="1"></canvas>
+		<div id="results"></div>
+		<div id="explain">
+			Drücke [SPACE], sobald ein Tiername (als Text) angezeigt oder ein Tierlaut (als Ton) abgespielt wird.
+			<br>Drücke jederzeit [A], um das Experiment zu beenden.
+			<br>Drücke [SPACE], um anzufangen!
+		</div>
+		<script>
+
+
+
+// this section is for the actual experiment coding
+var canvas = document.getElementById("canvas"), draw;
+var experiment = false, visualTimes = [], auditiveTimes = [], mistakes = 0, currentTime, stimulusType = -1;
+var currentTimeout;
+function startExperiment() {
+	visualTimes = [];
+	auditiveTimes = [];
+	mistakes = 0;
+	document.getElementById("results").innerHTML = "";
+	document.getElementById("explain").innerHTML = "";
+	if (document.fullscreenEnabled) canvas.requestFullscreen();
+	else {
+		canvas.width = 1280;
+		canvas.height = 720;
+		draw = canvas.getContext("2d");
+	}
+	experiment = true;
+	stimulusType = -1;
+	currentTimeout = window.setTimeout(showStimulus, Math.random() * 4000 + 2000);
+}
+function showStimulus() {
+	draw.fillStyle = "#000000";
+	draw.fillRect(0, 0, canvas.width, canvas.height);
+	if (Math.random() < 0.5) {
+		stimulusType = 0;
+		draw.fillStyle = "#0000ff";
+		draw.font = "48px sans-serif";
+		draw.textAlign = "center";
+		draw.textBaseline = "middle";
+		draw.fillText("Tintenfisch", (Math.random() * 0.5 + 0.25) * canvas.width, (Math.random() * 0.5 + 0.25) * canvas.height);
+	} else {
+		stimulusType = 1;
+		new Audio("animal_sound.wav").play();
+	}
+	currentTime = new Date().getTime();
+	currentTimeout = window.setTimeout(stimulusNoResponse, 4000);
+}
+function stimulusNoResponse() {
+	draw.fillStyle = "#000000";
+	draw.fillRect(0, 0, canvas.width, canvas.height);
+	draw.fillStyle = "#ff0000";
+	draw.font = "16px sans-serif";
+	draw.textAlign = "center";
+	draw.textBaseline = "middle";
+	draw.fillText("Fehler", canvas.width * 0.5, canvas.height * 0.75);
+	mistakes++;
+	stimulusType = -1;
+	currentTimeout = window.setTimeout(showStimulus, Math.random() * 4000 + 2000);
+}
+function stimulusResponse() {
+	let time = new Date().getTime() - currentTime;
+	window.clearTimeout(currentTimeout);
+	draw.fillStyle = "#000000";
+	draw.fillRect(0, 0, canvas.width, canvas.height);
+	switch (stimulusType) {
+		case -1:
+			draw.fillStyle = "#ff0000";
+			draw.font = "16px sans-serif";
+			draw.textAlign = "center";
+			draw.textBaseline = "middle";
+			draw.fillText("Fehler", canvas.width * 0.5, canvas.height * 0.75);
+			mistakes++;
+			break;
+		case 0:
+			draw.fillStyle = "#00ff00";
+			draw.font = "16px sans-serif";
+			draw.textAlign = "center";
+			draw.textBaseline = "middle";
+			draw.fillText(time + " ms", canvas.width * 0.5, canvas.height * 0.75);
+			visualTimes.push(time);
+			break;
+		case 1:
+			draw.fillStyle = "#00ff00";
+			draw.font = "16px sans-serif";
+			draw.textAlign = "center";
+			draw.textBaseline = "middle";
+			draw.fillText(time + " ms", canvas.width * 0.5, canvas.height * 0.75);
+			auditiveTimes.push(time);
+			break;
+	}
+	stimulusType = -1;
+	currentTimeout = window.setTimeout(showStimulus, Math.random() * 4000 + 2000);
+}
+function stopExperiment() {
+	window.clearTimeout(currentTimeout);
+	experiment = false;
+	if (document.fullscreenElement) document.exitFullscreen();
+	canvas.width = 1;
+	canvas.height = 1;
+	let totalCount = visualTimes.length + auditiveTimes.length + mistakes;
+	let visualMean = 0, auditiveMean = 0;
+	for (let i = 0; i < visualTimes.length; i++) visualMean += visualTimes[i];
+	for (let i = 0; i < auditiveTimes.length; i++) auditiveMean += auditiveTimes[i];
+	visualMean /= visualTimes.length;
+	auditiveMean /= auditiveTimes.length;
+	let visualSD = 0, auditiveSD = 0;
+	for (let i = 0; i < visualTimes.length; i++) visualSD += (visualTimes[i] - visualMean) * (visualTimes[i] - visualMean);
+	for (let i = 0; i < auditiveTimes.length; i++) auditiveSD += (auditiveTimes[i] - auditiveMean) * (auditiveTimes[i] - auditiveMean);
+	visualSD = Math.sqrt(visualSD / visualTimes.length);
+	auditiveSD = Math.sqrt(auditiveSD / auditiveTimes.length);
+	document.getElementById("results").innerHTML = "<p>Anzahl Runden: " + (visualTimes.length + auditiveTimes.length + mistakes)
+		+ "<br>Fehlerrate: " + ((mistakes / (visualTimes.length + auditiveTimes.length + mistakes)) * 100) + " %</p>"
+		+ "<p>Anzahl visueller Stimuli: " + visualTimes.length
+		+ "<br>Durchschnittliche Reaktionszeit: " + visualMean + " ms"
+		+ "<br>Standardabweichung: " + visualSD + " ms</p>"
+		+ "<p>Anzahl auditiver Stimuli: " + auditiveTimes.length
+		+ "<br>Durchschnittliche Reaktionszeit: " + auditiveMean + " ms"
+		+ "<br>Standardabweichung: " + auditiveSD + " ms</p>";
+	document.getElementById("explain").innerHTML = "Drücke [SPACE], um das Experiment neu zu starten!";
+}
+
+// this section is for handling key presses
+var spacePrev = false, spaceCurr = false, aPrev = false, aCurr = false;
+document.addEventListener("keydown", function(event) {
+	switch (event.keyCode) {
+		case 32:
+			spacePrev = spaceCurr;
+			spaceCurr = true;
+			if (spaceCurr && !spacePrev) {
+				if (!experiment) startExperiment();
+				else stimulusResponse();
+			}
+			break;
+		case 65:
+			aPrev = aCurr;
+			aCurr = true;
+			if (aCurr && !aPrev) {
+				if (experiment) stopExperiment();
+			}
+			break;
+	}
+});
+document.addEventListener("keyup", function(event) {
+	switch (event.keyCode) {
+		case 32:
+			spacePrev = spaceCurr;
+			spaceCurr = false;
+			break;
+		case 65:
+			aPrev = aCurr;
+			aCurr = false;
+			break;
+	}
+});
+
+// this section is for handling fullscreen events
+document.addEventListener("fullscreenchange", function(event) {
+	if (document.fullscreenElement) {
+		canvas.width = canvas.offsetWidth;
+		canvas.height = canvas.offsetHeight;
+		draw = canvas.getContext("2d");
+	} else stopExperiment();
+});
+
+
+
+		</script>
+	</body>
+</html>
