@@ -63,9 +63,9 @@ function showNextBox() {
 		} else {
 			currentBoxY = parseInt(Math.random() * (canvas.height - BOX_HEIGHTS[currentBoxSize] - currentBoxY - MIN_DISTANCE - BOX_HEIGHTS[BOX_HEIGHTS.length - 1])) + currentBoxY + BOX_HEIGHTS[currentBoxSize] + MIN_DISTANCE;
 		}
-	} else if (spaceLeft) {
+	} else if (spaceAbove) {
 		currentBoxY = parseInt(Math.random() * (currentBoxY - MIN_DISTANCE));
-	} else if (spaceRight) {
+	} else if (spaceBelow) {
 		currentBoxY = parseInt(Math.random() * (canvas.height - BOX_HEIGHTS[currentBoxSize] - currentBoxY - MIN_DISTANCE - BOX_HEIGHTS[BOX_HEIGHTS.length - 1])) + currentBoxY + BOX_WIDTHS[currentBoxSize] + MIN_DISTANCE;
 	} else alert("ERROR!\n\nNeither above nor below the box is any space for a new box!");
 	var size = Math.random();
