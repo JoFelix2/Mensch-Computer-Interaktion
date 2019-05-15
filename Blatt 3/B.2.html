@@ -21,7 +21,7 @@ function findFirstPositive(b, a, i, c) {
 	for (i = 1; 0 >= b(i);) i *= 2
 	return c(i / 2, i)|0
 }
-var dpi = findFirstPositive(x => matchMedia(`(max-resolution: ${x}dpi)`).matches)
+var dpi = navigator.platform.includes("Safari") ? 96 : findFirstPositive(x => matchMedia(`(max-resolution: ${x}dpi)`).matches)
 // </copied and pasted>
 var PIXELS_PER_MILLIMETER = dpi / 25.4;
 
