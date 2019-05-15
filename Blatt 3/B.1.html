@@ -96,7 +96,7 @@ function showResults() {
 // start
 currentBoxX = 0;
 currentBoxY = parseInt(canvas.height / 2);
-currentBoxSize = availSizes.pop();
+currentBoxSize = availSizes[availSizes.length - 1];
 currentBoxY -= BOX_HEIGHTS[currentBoxSize] / 2; //REMOVE THIS LINE
 draw.fillStyle = "#7f7f7f";
 draw.fillRect(0, 0, canvas.width, canvas.height);
