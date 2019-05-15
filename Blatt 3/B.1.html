@@ -120,7 +120,7 @@ document.addEventListener("mouseup", function(event) {
 		}
 		prevClickX = currentClickX;
 		prevClickY = currentClickY;
-		if (time !== undefined) mts.push(new Date().getTime() - time);
+		if (time !== undefined) mts.push((new Date().getTime() - time) / 1000);
 		if (availSizes.length > 0) showNextBox();
 		else showResults();
 	}
