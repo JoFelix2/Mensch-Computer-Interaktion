@@ -73,7 +73,7 @@ function showNextBox() {
 		currentBoxY = parseInt(Math.random() * (canvas.height - BOX_HEIGHTS[currentBoxSize] - currentBoxY - MIN_DISTANCE - BOX_HEIGHTS[BOX_HEIGHTS.length - 1])) + currentBoxY + BOX_WIDTHS[currentBoxSize] + MIN_DISTANCE;
 	} else alert("ERROR!\n\nNeither above nor below the box is any space for a new box!"); */
 	currentBoxY = parseInt(canvas.height / 2); //REMOVE THIS LINE
-	var i = Math.random() * availSizes.length;
+	var i = parseInt(Math.random() * availSizes.length);
 	availSizes.splice(i, 1);
 	currentBoxSize = i;
 	currentBoxY -= BOX_HEIGHTS[currentBoxSize] / 2; // REMOVE THIS LINE
