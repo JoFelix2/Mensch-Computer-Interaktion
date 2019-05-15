@@ -95,7 +95,7 @@ currentBoxX = 0;
 currentBoxY = parseInt(canvas.height / 2);
 currentBoxSize = BOX_WIDTHS.length - 1;
 currentBoxY -= BOX_HEIGHTS[currentBoxSize] / 2; //REMOVE THIS LINE
-sizesUsed[0]++;
+sizesUsed[currentBoxSize]++;
 draw.fillStyle = "#7f7f7f";
 draw.fillRect(0, 0, canvas.width, canvas.height);
 draw.fillStyle = "#000000";
