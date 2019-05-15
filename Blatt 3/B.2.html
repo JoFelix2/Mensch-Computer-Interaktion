@@ -29,14 +29,18 @@ var BOX_WIDTHS = [10 * PIXELS_PER_MILLIMETER, 20 * PIXELS_PER_MILLIMETER, 30 * P
 	BOX_HEIGHTS = [5 * PIXELS_PER_MILLIMETER, 10 * PIXELS_PER_MILLIMETER, 15 * PIXELS_PER_MILLIMETER, 20 * PIXELS_PER_MILLIMETER, 25 * PIXELS_PER_MILLIMETER];
 var MAX_USES = 1;
 if (BOX_WIDTHS.length != BOX_HEIGHTS.length) alert("You have some bug in your code.");
-var sizesUsed = new Array(BOX_WIDTHS.length);
-for (var i = 0; i < sizesUsed.length; i++) sizesUsed[i] = 0;
+var availSizes = [];
+for (var i = 0; i < BOX_WIDTHS.length; i++) {
+	for (var j = 0; j < MAX_USES; j++) {
+		availSizes.push(i);
+	}
+}
 var MIN_DISTANCE = 10 * PIXELS_PER_MILLIMETER;
 
 var currentBoxX, currentBoxY, currentBoxSize;
 
-var ids = new Array(sizesUsed.length), mts = new Array(sizesUsed.length);
-for (var i = 0; i < sizesUsed.length; i++) {
+var ids = new Array(BOX_WIDTHS.length), mts = new Array(BOX_WIDTHS.length);
+for (var i = 0; i < BOX_WIDTHS.length; i++) {
 	ids[i] = [];
 	mts[i] = [];
 }
@@ -68,14 +72,9 @@ function showNextBox() {
 	} else if (spaceBelow) {
 		currentBoxY = parseInt(Math.random() * (canvas.height - BOX_HEIGHTS[currentBoxSize] - currentBoxY - MIN_DISTANCE - BOX_HEIGHTS[BOX_HEIGHTS.length - 1])) + currentBoxY + BOX_WIDTHS[currentBoxSize] + MIN_DISTANCE;
 	} else alert("ERROR!\n\nNeither above nor below the box is any space for a new box!");
-	var size = Math.random();
-	for (var i = 0; i < sizesUsed.length; i++) {
-		if (size < (i + 1) * 1.0 / sizesUsed.length && sizesUsed[i] < MAX_USES) {
-			currentBoxSize = i;
-			sizesUsed[i]++;
-			break;
-		}
-	}
+	var i = parseInt(Math.random() * availSizes.length);
+	currentBoxSize = availSizes[i];
+	availSizes.splice(i, 1);
 	draw.fillStyle = "#7f7f7f";
 	draw.fillRect(0, 0, canvas.width, canvas.height);
 	draw.fillStyle = "#ff0000";
@@ -89,8 +88,7 @@ function showResults() {
 // start
 currentBoxX = 0;
 currentBoxY = 0;
-currentBoxSize = BOX_WIDTHS.length - 1;
-sizesUsed[currentBoxSize]++;
+currentBoxSize = availSizes.pop();
 draw.fillStyle = "#7f7f7f";
 draw.fillRect(0, 0, canvas.width, canvas.height);
 draw.fillStyle = "#ff0000";
@@ -101,13 +99,12 @@ function isInCurrentBox(x, y) {
 }
 
 document.addEventListener("mouseup", function(event) {
-	var sum = 0;
-	for (var i = 0; i < sizesUsed.length; i++) sum += sizesUsed[i];
-	if (isInCurrentBox(event.x - canvas.offsetLeft, event.y - canvas.offsetTop) && sum < MAX_USES * sizesUsed.length) {
+	if (isInCurrentBox(event.x - canvas.offsetLeft, event.y - canvas.offsetTop)) {
 		ids[currentBoxSize].push(-1);
 		mts[currentBoxSize].push(-1);
-		showNextBox();
-	} else if (sum >= MAX_USES * sizesUsed.length) showResults();
+		if (availSizes.length > 0) showNextBox();
+		else showResults();
+	}
 });
 
 
