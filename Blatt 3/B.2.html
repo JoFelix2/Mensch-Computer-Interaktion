@@ -27,7 +27,7 @@ var PIXELS_PER_MILLIMETER = dpi / 25.4;
 
 var BOX_WIDTHS = [10 * PIXELS_PER_MILLIMETER, 20 * PIXELS_PER_MILLIMETER, 30 * PIXELS_PER_MILLIMETER, 40 * PIXELS_PER_MILLIMETER, 50 * PIXELS_PER_MILLIMETER],
 	BOX_HEIGHTS = [5 * PIXELS_PER_MILLIMETER, 10 * PIXELS_PER_MILLIMETER, 15 * PIXELS_PER_MILLIMETER, 20 * PIXELS_PER_MILLIMETER, 25 * PIXELS_PER_MILLIMETER];
-var MAX_USES = 1;
+var MAX_USES = 10;
 if (BOX_WIDTHS.length != BOX_HEIGHTS.length) alert("You have some bug in your code.");
 var availSizes = [];
 for (var i = 0; i < BOX_WIDTHS.length; i++) {
@@ -39,11 +39,9 @@ var MIN_DISTANCE = 10 * PIXELS_PER_MILLIMETER;
 
 var currentBoxX, currentBoxY, currentBoxSize;
 
-var ids = new Array(BOX_WIDTHS.length), mts = new Array(BOX_WIDTHS.length);
-for (var i = 0; i < BOX_WIDTHS.length; i++) {
-	ids[i] = [];
-	mts[i] = [];
-}
+var prevClickX, prevClickY, time;
+
+var ids = [], mts = [];
 
 function showNextBox() {
 	var spaceLeft = currentBoxX > (BOX_WIDTHS[BOX_WIDTHS.length - 1] + MIN_DISTANCE),
@@ -79,16 +77,22 @@ function showNextBox() {
 	draw.fillRect(0, 0, canvas.width, canvas.height);
 	draw.fillStyle = "#ff0000";
 	draw.fillRect(currentBoxX, currentBoxY, BOX_WIDTHS[currentBoxSize], BOX_HEIGHTS[currentBoxSize]);
+	time = new Date().getTime();
 }
 
 function showResults() {
-	document.body.innerHTML = "This is where the results go.";
+	var string = "<table><tr><th>ID</th><th>MT</th></tr>";
+	for (var i = 0; i < ids.length; i++) {
+		string += "<tr><td>" + ids[i] + "</td><td>" + mts[i] + "</td></tr>";
+	}
+	string += "</table>";
+	document.body.innerHTML = string;
 }
 
 // start
 currentBoxX = 0;
 currentBoxY = 0;
-currentBoxSize = availSizes.pop();
+currentBoxSize = availSizes[availSizes.length - 1];
 draw.fillStyle = "#7f7f7f";
 draw.fillRect(0, 0, canvas.width, canvas.height);
 draw.fillStyle = "#ff0000";
@@ -99,9 +103,17 @@ function isInCurrentBox(x, y) {
 }
 
 document.addEventListener("mouseup", function(event) {
-	if (isInCurrentBox(event.x - canvas.offsetLeft, event.y - canvas.offsetTop)) {
-		ids[currentBoxSize].push(-1);
-		mts[currentBoxSize].push(-1);
+	var currentClickX = event.x - canvas.offsetLeft, currentClickY = event.y - canvas.offsetTop;
+	if (isInCurrentBox(currentClickX, currentClickY)) {
+		if (prevClickX !== undefined && prevClickY !== undefined) {
+			var a = Math.sqrt((prevClickX - currentClickX) * (prevClickX - currentClickX) + (prevClickY - currentClickY) * (prevClickY - currentClickY));
+			var w = BOX_WIDTHS[currentBoxSize] * BOX_HEIGHTS[currentBoxSize];
+			var id = Math.log2(a / w + 1);
+			ids.push(id);
+		}
+		prevClickX = currentClickX;
+		prevClickY = currentClickY;
+		if (time !== undefined) mts.push((new Date().getTime() - time) / 1000);
 		if (availSizes.length > 0) showNextBox();
 		else showResults();
 	}
