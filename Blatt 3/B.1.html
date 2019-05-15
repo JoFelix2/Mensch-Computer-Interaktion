@@ -74,8 +74,8 @@ function showNextBox() {
 	} else alert("ERROR!\n\nNeither above nor below the box is any space for a new box!"); */
 	currentBoxY = parseInt(canvas.height / 2); //REMOVE THIS LINE
 	var i = parseInt(Math.random() * availSizes.length);
+	currentBoxSize = availSizes[i];
 	availSizes.splice(i, 1);
-	currentBoxSize = i;
 	currentBoxY -= BOX_HEIGHTS[currentBoxSize] / 2; // REMOVE THIS LINE
 	draw.fillStyle = "#7f7f7f";
 	draw.fillRect(0, 0, canvas.width, canvas.height);
