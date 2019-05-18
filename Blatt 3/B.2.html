@@ -103,7 +103,7 @@ function isInCurrentBox(x, y) {
 }
 
 document.addEventListener("mouseup", function(event) {
-	var currentClickX = event.x - canvas.offsetLeft, currentClickY = event.y - canvas.offsetTop;
+	var currentClickX = event.pageX - canvas.offsetLeft, currentClickY = event.pageY - canvas.offsetTop;
 	if (isInCurrentBox(currentClickX, currentClickY)) {
 		if (prevClickX !== undefined && prevClickY !== undefined) {
 			var a = Math.sqrt((prevClickX - currentClickX) * (prevClickX - currentClickX) + (prevClickY - currentClickY) * (prevClickY - currentClickY));
