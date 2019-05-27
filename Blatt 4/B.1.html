@@ -7,18 +7,20 @@
 	<body>
 		<div>
 			<div>
-				Distance: <input id="distance" style="text-align: right" value="0"/> km
+				Distance: <input id="distance" style="text-align: right" value="0" autofocus/> km
 			</div>
-			<div style="display: inline-block">
-				Means of transportation:
-				<br><input id="car" name="transport" type="radio" value="car" checked/> <label for="car">Car</label>
-				<br><input id="plane" name="transport" type="radio" value="plane"/> <label for="plane">Plane</label>
-				<br><input id="bike" name="transport" type="radio" value="bike"/> <label for="bike">Motorbike</label>
-				<br><input id="bus" name="transport" type="radio" value="bus"/> <label for="bus">Bus</label>
-				<br><input id="train" name="transport" type="radio" value="train"/> <label for="train">Train</label>
-			</div>
-			<div style="display: inline-block">
-				<button id="calculate">Calculate!</button>
+			<div style="display: flex; align-items: center">
+			    <div style="display: inline-block">
+				    Means of transportation:
+				    <br><input id="car" name="transport" type="radio" value="car" checked/> <label for="car">Car</label>
+				    <br><input id="plane" name="transport" type="radio" value="plane"/> <label for="plane">Plane</label>
+				    <br><input id="bike" name="transport" type="radio" value="bike"/> <label for="bike">Motorbike</label>
+				    <br><input id="bus" name="transport" type="radio" value="bus"/> <label for="bus">Bus</label>
+				    <br><input id="train" name="transport" type="radio" value="train"/> <label for="train">Train</label>
+			    </div>
+			    <div style="display: inline-block">
+				    <button id="calculate">Calculate!</button>
+			    </div>
 			</div>
 			<div>
 				CO<sub>2</sub>: <span id="result"></span>
@@ -34,7 +36,7 @@ var emission = {
 	"bike": 83.0,
 	"bus": 66.8,
 	"train": 45.6
-}
+};
 
 document.getElementById("calculate").addEventListener("click", function(event) {
 	document.getElementById("result").innerHTML = parseFloat(document.getElementById("distance").value) * emission[document.querySelector('input[name="transport"]:checked').value];
